@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Power Off</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff99;
+      font-family: monospace;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .terminal {
+      padding: 16px;
+      font-size: 14px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      animation: flicker 1.5s infinite;
+      text-shadow: 0 0 6px rgba(0,255,153,0.6);
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .off {
+      position: fixed;
+      inset: 0;
+      background: black;
+      display: none;
+      animation: glitch 0.35s steps(2, end) infinite;
+    }
+
+    @keyframes glitch {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(0.4); }
+      100% { filter: brightness(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal" id="terminal"></div>
+  <div class="off" id="off"></div>
+
+  <script>
+    const lines = [
+      "[  OK  ] Initializing bluetooth service...",
+      "[  OK  ] Connecting to remote host...",
+      "[  OK  ] Injecting payload...",
+      "[ WARN ] Permission denied bypassed",
+      "[ Wait ] Verify Device...",
+      "[Target] Verified Successful",
+      "..........................................",
+      "              Tracking Device             ",
+      "                 SUCCESS                  ",
+      "              Execute System              ",
+      "                COMPLETED                 "
+    ];
+
+    const terminal = document.getElementById("terminal");
+    const off = document.getElementById("off");
+    let i = 0;
+    let started = false;
+
+    // 🔊 Bunyi beep pakai Web Audio (tanpa file mp3)
+    function beep() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 900;
+      gain.gain.value = 0.02;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(() => {
+        osc.stop();
+        ctx.close();
+      }, 40);
+    }
+
+    function typeLine() {
+      if (i < lines.length) {
+        terminal.textContent += lines[i] + "\n";
+        beep();
+        i++;
+        setTimeout(typeLine, 650);
+      } else {
+        setTimeout(() => {
+          terminal.style.display = "none";
+          off.style.display = "block";
+        }, 1200);
+      }
+    }
+
+    function start() {
+      if (started) return;
+      started = true;
+      typeLine();
+    }
+
+    window.addEventListener("load", start);
+  </script>
+</body>
+</html>
